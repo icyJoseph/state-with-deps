@@ -1,45 +1,111 @@
-import { useState } from 'react'
-import logo from './logo.svg'
-import './App.css'
+import { useEffect, useRef } from "react";
+import { useStateWithDeps } from "./useStateWithDeps";
 
-function App() {
-  const [count, setCount] = useState(0)
+const fetcher = async (
+  pkNumber: number,
+  { signal }: { signal: AbortSignal }
+) => {
+  await new Promise((accept) => setTimeout(accept, 1000 * pkNumber));
+
+  return fetch(`https://pokeapi.co/api/v2/pokemon/${pkNumber}`, {
+    signal
+  }).then((res) => res.json());
+};
+
+type Pokemon = {
+  height: number;
+  id: number;
+  weight: number;
+  order: number;
+  name: string;
+};
+
+type PokemonStarter = {
+  bulbasaur: Pokemon | null;
+  charmander: Pokemon | null;
+  squirtle: Pokemon | null;
+};
+
+const useStarterPokemon = () => {
+  const unmounted = useRef(false);
+
+  const [stateRef, stateDependencies, setState] =
+    useStateWithDeps<PokemonStarter>(
+      { bulbasaur: null, charmander: null, squirtle: null },
+      unmounted
+    );
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetcher(1, { signal: controller.signal })
+      .then((data) => setState({ bulbasaur: data }))
+      .catch((e) => {
+        if (controller.signal.aborted) return;
+        setState({ bulbasaur: null });
+      });
+
+    return () => controller.abort();
+  }, [setState]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetcher(4, { signal: controller.signal })
+      .then((data) => setState({ charmander: data }))
+      .catch((e) => {
+        if (controller.signal.aborted) return;
+        setState({ charmander: null });
+      });
+
+    return () => controller.abort();
+  }, [setState]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetcher(7, { signal: controller.signal })
+      .then((data) => setState({ squirtle: data }))
+      .catch((e) => {
+        if (controller.signal.aborted) return;
+        setState({ squirtle: null });
+      });
+
+    return () => controller.abort();
+  }, [setState]);
+
+  useEffect(() => {
+    return () => {
+      unmounted.current = true;
+    };
+  }, []);
+
+  return {
+    get bulbasaur() {
+      stateDependencies.bulbasaur = true;
+      return stateRef.current.bulbasaur;
+    },
+    get charmander() {
+      stateDependencies.charmander = true;
+      return stateRef.current.charmander;
+    },
+    get squirtle() {
+      stateDependencies.squirtle = true;
+      return stateRef.current.squirtle;
+    }
+  };
+};
+
+export default function App() {
+  const { bulbasaur } = useStarterPokemon();
+
+  console.log(bulbasaur);
+  console.count("Render App");
 
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>Hello Vite + React!</p>
-        <p>
-          <button type="button" onClick={() => setCount((count) => count + 1)}>
-            count is: {count}
-          </button>
-        </p>
-        <p>
-          Edit <code>App.tsx</code> and save to test HMR updates.
-        </p>
-        <p>
-          <a
-            className="App-link"
-            href="https://reactjs.org"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Learn React
-          </a>
-          {' | '}
-          <a
-            className="App-link"
-            href="https://vitejs.dev/guide/features.html"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Vite Docs
-          </a>
-        </p>
-      </header>
+      <h1>Hello CodeSandbox</h1>
+      <h2>Start editing to see some magic happen!</h2>
     </div>
-  )
+  );
 }
-
-export default App
