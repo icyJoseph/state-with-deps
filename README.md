@@ -22,7 +22,7 @@ When using React hooks, we want updates to propagate.
 const [count, setCount] = useState(0);
 ```
 
-Foe example a call to `setCount` updates the `count` variable, and we expect the component containing this hook to render.
+For example a call to `setCount` updates the `count` variable, and we expect the component containing this hook to render.
 
 Let's now complicate things a little. Say we have a hook that returns a a list of things, and also the length of the data list.
 
@@ -515,7 +515,7 @@ Run our tests again, and we see:
 
 🎉🎉🎉🎉
 
-Even though change the label, since that update results in the same length, the hook does not trigger a render, even though `data` did change. Exactly what we wanted!
+We change the label and that itself causes an update, but since that update results in the same length, the hook does not trigger a render once again, even though `data` did change. Exactly what we wanted!
 
 The only renders we account for are, because of the `label` state, and the `length`, when the `data` that creates it changes.
 
