@@ -305,7 +305,7 @@ We need to learn to do a couple of things first:
 In React, the easiest way to force a render is to change a piece of state.
 
 ```ts
-const [, force] = useState<Record<string, unknown>>({});
+const [, force] = useState({});
 
 useEffect(() => {
   const timer = setTimeout(() => force({}), 1000);
