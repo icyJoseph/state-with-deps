@@ -638,9 +638,9 @@ export const useStarterPokemon = () => {
 };
 ```
 
-By virtual of the `useStateWithDeps` hook, we can make sure we query only for the pokemon we use in our hooks.
+The `useStateWithDeps` hook makes it possible to query only for the pokemon we use in our component.
 
-Potentially we could make a hook that fetches every possible pokemon!
+Potentially we could make a hook that fetches every possible pokemon, but does the work only for the pokemon required!
 
 ```ts
 const { charmander } = useStarterPokemon();
