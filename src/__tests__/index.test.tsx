@@ -4,7 +4,7 @@ import { useData, useDataWithDepsTracking } from "../useData";
 
 const App = () => {
   const [label, setLabel] = useState("");
-  const { length } = useDataWithDepsTracking(label);
+  const { length } = useData(label);
   const ref = useRef<HTMLInputElement>(null);
 
   const onSubmit = (e: SyntheticEvent) => {
@@ -49,7 +49,7 @@ test("Renders only if length changes", () => {
 
   fireEvent.click(screen.getByText("submit"));
 
-  // the submission changes label, which in turn recalculates length
+  // the submission changes label + length recalculation
   expect(spyCount).toHaveBeenCalledTimes(3);
 
   fireEvent.change(screen.getByPlaceholderText("Enter your string"), {
@@ -59,6 +59,6 @@ test("Renders only if length changes", () => {
   fireEvent.click(screen.getByText("submit"));
 
   // the submission changes label
-  // length is the same value, so only one render happens
+  // since the length of data is the same, no additional render should happen
   expect(spyCount).toHaveBeenCalledTimes(4);
 });

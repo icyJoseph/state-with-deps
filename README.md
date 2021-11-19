@@ -158,7 +158,7 @@ Manually testing this is trivial, however, it is best to seal the desired behavi
 ```tsx
 import { SyntheticEvent, useState, useRef } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { useData } from "../useData";
+import { useData, useDataWithDepsTracking } from "../useData";
 
 const App = () => {
   const [label, setLabel] = useState("");
@@ -207,8 +207,18 @@ test("Renders only if length changes", () => {
 
   fireEvent.click(screen.getByText("submit"));
 
-  // the submission changes label, which in turn recalculates length
-  expect(spyCount).toHaveBeenCalledTimes(2);
+  // the submission changes label + length recalculation
+  expect(spyCount).toHaveBeenCalledTimes(3);
+
+  fireEvent.change(screen.getByPlaceholderText("Enter your string"), {
+    target: { value: "54321" }
+  });
+
+  fireEvent.click(screen.getByText("submit"));
+
+  // the submission changes label
+  // since the length of data is the same, no additional render should happen
+  expect(spyCount).toHaveBeenCalledTimes(4);
 });
 ```
 
@@ -345,7 +355,7 @@ Clicking the button updates an internal piece of state, but it only renders when
 - Click once, the i is set to 1, but the button still shows 0
 - Click once again, the internal is set to 2, the button updates to 2
 
-Don't believe me? Write a test for it!
+Don't believe me? Here's a test for it!
 
 ```ts
 test("State hidden inside a ref", () => {
