@@ -1,95 +1,51 @@
-import {
-  useCallback,
-  useRef,
-  useState,
-  MutableRefObject,
-  useLayoutEffect
-} from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-function useConstant<Constant>(init: () => Constant): Constant {
-  const ref = useRef<Constant | null>(null);
+export function useStateWithDeps<State extends Record<string, unknown>>(
+  initialState: State
+) {
+  const [, rerender] = useState({});
 
-  if (ref.current === null) {
-    ref.current = init();
-  }
+  const unmounted = useRef(false);
 
-  return ref.current;
-}
-/**
- * An implementation of state with dependency-tracking.
- */
-export function useStateWithDeps<State>(
-  state: State,
-  unmountedRef: MutableRefObject<boolean>
-): [
-  MutableRefObject<State>,
-  Record<keyof State, boolean>,
-  (payload: Partial<State>) => void
-] {
-  const rerender = useState<Record<string, unknown>>({})[1];
-  const stateRef = useRef(state);
+  useEffect(() => {
+    return () => {
+      unmounted.current = true;
+    };
+  }, []);
 
-  const initStateDepsRef = useConstant(() => {
-    const deps: Record<any, boolean> = {};
+  const stateRef = useRef(initialState);
 
-    for (const key in state) {
-      deps[key] = false;
-    }
+  const stateDependenciesRef = useRef<Partial<Record<keyof State, boolean>>>(
+    Object.keys(stateRef.current).reduce(
+      (prev, curr: keyof State) => ({ ...prev, [curr]: false }),
+      {}
+    )
+  );
 
-    return deps as Record<keyof State, boolean>;
-  });
-
-  // If a state property (data, error or isValidating) is accessed by the render
-  // function, we mark the property as a dependency so if it is updated again
-  // in the future, we trigger a rerender.
-  // This is also known as dependency-tracking.
-  const stateDependenciesRef =
-    useRef<Record<keyof State, boolean>>(initStateDepsRef);
-
-  /**
-   * @param payload To change stateRef, pass the values explicitly to setState:
-   * @example
-   * ```js
-   * setState({
-   *   isValidating: false
-   *   data: newData // set data to newData
-   *   error: undefined // set error to undefined
-   * })
-   *
-   * setState({
-   *   isValidating: false
-   *   data: undefined // set data to undefined
-   *   error: err // set error to err
-   * })
-   * ```
-   */
-  const setState = useCallback<(payload: Partial<State>) => void>(
-    (payload) => {
+  const setState = useCallback(
+    (payload: Partial<State>) => {
       let shouldRerender = false;
 
       const currentState = stateRef.current;
 
       for (const k in payload) {
-        // If the property has changed, update the state and mark rerender as
-        // needed.
+        // If the property has changed, update the state
         if (currentState[k] !== payload[k]) {
           currentState[k] = payload[k] as State[typeof k];
 
-          // If the property is accessed by the component, a rerender should be
-          // triggered.
+          // If the property is accessed, a rerender should be triggered.
           if (stateDependenciesRef.current[k]) {
             shouldRerender = true;
           }
         }
       }
 
-      if (shouldRerender && !unmountedRef.current) {
+      if (shouldRerender && !unmounted.current) {
         rerender({});
       }
     },
-    /* eslint-disable react-hooks/exhaustive-deps */
-    []
+    [rerender]
   );
 
-  return [stateRef, stateDependenciesRef.current, setState];
+  return [stateRef, setState, stateDependenciesRef.current] as const;
 }
