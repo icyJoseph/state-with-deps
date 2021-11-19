@@ -352,8 +352,8 @@ const EvenButton = () => {
 
 Clicking the button updates an internal piece of state, but it only renders when the internal piece of state holds an even number.
 
-- Click once, the i is set to 1, but the button still shows 0
-- Click once again, the internal is set to 2, the button updates to 2
+- Click once, the i is set to `1`, but the button still shows `0`
+- Click once again, the internal is set to `2`, the button updates to `2`
 
 Don't believe me? Here's a test for it!
 
@@ -379,7 +379,7 @@ By now you might see what's the trick.
 
 - Keep state in a React ref
 - Update it as one normally would
-- Let React know about changes, only if certain condition(s) are met
+- Let React know about changes, only if certain conditions are met
 
 We'll store the result from the property `getters` on yet another React ref, and use that to know whether or not to let React know about the changes. We'll let React know about the changes, by forcing a render.
 
@@ -448,9 +448,9 @@ From top to bottom:
 
 - Define a force rendering function.
 
-- An unmount flag. Typical trick to know if the hook we are currently in has unmounted. This is necessary because calls to setState might happen asynchronously. Normally this shoulde be done on the component side, and the flag should be passed to the hook wrapped in a React ref, but in spirit of keeping the function signature small, I placed in here.
+- An unmount flag. Typical trick to know if the hook we are currently in has unmounted. This is necessary because calls to `setState` might happen asynchronously. Normally this shoulde be done on the component side, and the flag should be passed to the hook wrapped in a React ref, but in spirit of keeping the function signature small, I placed in here.
 
-- The next bit, might look confusing, but we are simply going over the initial state and creating a new object, with the same keys, but with false as value. When a component uses a piece of state, we flip this boolean to true. This is how we know if a state property is used.
+- The next bit, might look confusing, but we are simply going over the initial state and creating a new object, with the same keys, but with `false` as value. When a component uses a piece of state, we flip this boolean to `true`. This is how we know if a state property is used.
 
 - Finally, our state setter. It takes in a payload, which doesn't need to contain all properties of state. It loops over the payload keys, updating the keys that need to be updated, and if it sees an update to a tracked dependency, it sets a flag to force a render. Wrapped in `useCallback`, to make it stable. The `rerender` function is stable, so our `setState` function is also stable.
 
