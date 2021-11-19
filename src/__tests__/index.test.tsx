@@ -1,10 +1,12 @@
 import { SyntheticEvent, useState, useRef } from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
-import { useData, useDataWithDepsTracking } from "../useData";
+
+// Try replacing useDataWithDepsTracking with any of useData or useLength - the test will fail
+import { useData, useLength, useDataWithDepsTracking } from "../useData";
 
 const App = () => {
   const [label, setLabel] = useState("");
-  const { length } = useData(label);
+  const { length } = useDataWithDepsTracking(label);
   const ref = useRef<HTMLInputElement>(null);
 
   const onSubmit = (e: SyntheticEvent) => {

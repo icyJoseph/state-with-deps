@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useStateWithDeps } from "./useStateWithDeps";
 
 export const useData = (label: string) => {
@@ -12,6 +12,17 @@ export const useData = (label: string) => {
     length: data.length,
     data
   };
+};
+
+export const useLength = (label: string) => {
+  const { length } = useData(label);
+
+  return useMemo(
+    () => ({
+      length
+    }),
+    [length]
+  );
 };
 
 export const useDataWithDepsTracking = (label: string) => {

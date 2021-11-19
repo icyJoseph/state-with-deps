@@ -103,6 +103,23 @@ useEffect(() => {
 
 With this modification, and React's Strict Mode on, this counts two times `App: 0`, and with Strict Mode off, it counts once.
 
+You might even think that one could fix this, by wrapping length inside an object, and wrapping that with `useMemo`, like so:
+
+```ts
+const useLength = (label: string) => {
+  const { length } = useData(label);
+
+  return useMemo(
+    () => ({
+      length
+    }),
+    [length]
+  );
+};
+```
+
+But the issue here is that `useData` would still be contained within who ever is calling this hook, and that'll make those callers render.
+
 ### Empty objects as default values and React rendering
 
 The above often happens in another less obvious way. That is when we use destructuring default values. In the snippet below, everytime we toggle, the data reference is a different empty array, so the effect is triggered.
