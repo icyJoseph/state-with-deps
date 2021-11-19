@@ -488,7 +488,7 @@ export const useData = (label: string) => {
 };
 ```
 
-Now, we'll keep track of which dependencies are read, if only length, if only data, if none, or both, and notify the consumer only when necessary.
+Now, we'll keep track of which dependencies are read, and notify the consumer only when necessary.
 
 Run our tests again, and we see:
 
