@@ -498,7 +498,9 @@ Run our tests again, and we see:
 
 🎉🎉🎉🎉
 
-Even though we update label to a different thing, since that update results in the same number, the hook does not trigger a render, even though `data` did change. Exactly what we wanted! The only renders we account for are because of the `label` state, and the `length`, when the `data` that creates it changes.
+Even though change the label, since that update results in the same length, the hook does not trigger a render, even though `data` did change. Exactly what we wanted!
+
+The only renders we account for are, because of the `label` state, and the `length`, when the `data` that creates it changes.
 
 ## Critique
 
