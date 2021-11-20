@@ -85,7 +85,7 @@ export default function App() {
 }
 ```
 
-With React's Strict Mode on this counts four times `App: 0`. With Strict Mode off, it counts two times.
+With React's Strict Mode on, this counts four times `App: 0`. With Strict Mode off, it counts two times.
 
 The point here is that data changes inside the `setTimeout` to a different piece of data, that just happens to have the same length.
 
@@ -166,11 +166,13 @@ const App = () => {
 };
 ```
 
-And when data changes, if it has the same length, we should not add one more to the App render count.
+And when data changes, if it has the same length, we should not add one more to the `App render` count.
 
 ## Test case
 
-Manually testing this is trivial, however, it is best to seal the desired behavior behind a unit test.
+Since this behavior is kind of counter intuitive, at least for me, we might fool ourselves thinking we have a solution. That's why it is best to seal the desired behavior behind a unit test, and make sure we can write code that passes the test.
+
+> This repository contains the test below. You can find it here: `src/__tests__/index.test.tsx`.
 
 ```tsx
 import { SyntheticEvent, useState, useRef } from "react";
@@ -279,7 +281,9 @@ Then we'll have a failing test:
 
 Notice that we don't even get to modify the input field, and the test already failed.
 
-Let's fix the test!
+I've also included `useLength` in this repository, so you can try it and see it fail.
+
+Anyway, let's write code to make the test pass!
 
 ## Implementation
 
@@ -373,6 +377,8 @@ Clicking the button updates an internal piece of state, but it only renders when
 - Click once again, the internal is set to `2`, the button updates to `2`
 
 Don't believe me? Here's a test for it!
+
+> You can find this test here: `src/__tests__/refState.test.tsx`.
 
 ```ts
 test("State hidden inside a ref", () => {
