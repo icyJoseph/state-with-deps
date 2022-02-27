@@ -4,7 +4,7 @@ Inside libraries like `swr` lies a very interesting construct.
 
 A state hook that can keep track of which parts of the state are being used.
 
-It does this to render the consumer component, only when the state it consumes changes, ignoring other changes to state.
+It does this to render the consumer component, only when the pieces of state it consumes change, otherwise, it ignores the change.
 
 The [swr code](https://github.com/vercel/swr/blob/master/src/utils/state.ts) summarizes it better than I can:
 
@@ -39,7 +39,7 @@ const useData = (label) => {
 };
 ```
 
-So far so good. Data is a list, and length, represents the amount of elements on it.
+So far so good. Data is a list, and length, represents the amount of elements in the list.
 
 Now we have an interesting situation, a component using `length` from `useData`, renders when `data` changes, even if the `length` is still the same.
 
@@ -52,7 +52,7 @@ const useDataLength = (label) => {
 };
 ```
 
-You might think that because `length` is a number, React can bailout on rendering the consumer if the length is the same between renders, but that's not the case.
+You might think that because `length` is a number, React can bail out on rendering the consumer if the length is the same between renders, but that's not the case.
 
 ```jsx
 import { useEffect, useState } from "react";
@@ -87,7 +87,7 @@ export default function App() {
 
 With React's Strict Mode on, this counts four times `App: 0`. With Strict Mode off, it counts two times.
 
-The point here is that data changes inside the `setTimeout` to a different piece of data, that just happens to have the same length.
+The point here is that data changes inside the `setTimeout` to a different list, that just happens to have the same length.
 
 To bail out from the update, we need to return the same reference, for example by doing `prev => prev` on `setData`.
 
@@ -103,7 +103,7 @@ useEffect(() => {
 
 With this modification, and React's Strict Mode on, this counts two times `App: 0`, and with Strict Mode off, it counts once.
 
-You might even think that one could fix this, by wrapping length inside an object, and wrapping that with `useMemo`, like so:
+You might even think that one could fix this, by wrapping length inside an object, and then wrap that with `useMemo`, like so:
 
 ```ts
 const useLength = (label: string) => {
@@ -118,11 +118,11 @@ const useLength = (label: string) => {
 };
 ```
 
-But the issue here is that `useData` would still be contained within who ever is calling this hook, and that'll make those callers render.
+But the issue here is that `useData` would still be contained within who ever is calling this hook, and that'll make those render.
 
 ### Empty objects as default values and React rendering
 
-The above often happens in another less obvious way. That is when we use destructuring default values. In the snippet below, everytime we toggle, the data reference is a different empty array, so the effect is triggered.
+The above often happens in another less obvious way. That is when we use de-structuring default values. In the snippet below, everytime we toggle, the data reference is a different empty array, so the effect is triggered.
 
 > Do you dare to uncomment the call to toggle inside `useEffect`
 
@@ -289,7 +289,7 @@ Anyway, let's write code to make the test pass!
 
 We'll need a special version of `useState`. Let's call it `useStateWithDeps`.
 
-There's no aha moment here, a side from the fact that `useStateWithDeps` needs a signature that extends `useState`'s.
+The `useStateWithDeps` hook needs a signature that extends `useState`'s.
 
 Plain and simple, we need to track which parts of the state are used. How can we do this in vanilla JavaScript?
 
@@ -312,7 +312,7 @@ joe.foo; // joe doe
 joe.access.get("foo"); // true
 ```
 
-Using a `getter` we can gain knowledge of whether or not a property is being consumed, and store that in look up table.
+Using a `getter` we can gain knowledge of whether or not a property is being consumed, and store that in a look up table.
 
 Then when processing a state update, we see which parts of the state have changed, and if any of those are in the look up table, we let a render happen.
 
@@ -323,7 +323,7 @@ We need to learn to do a couple of things first:
 
 ### Forced render
 
-In React, the easiest way to force a render is to change a piece of state.
+In React, the easiest way to force a render is to change state to a new reference.
 
 ```ts
 const [, force] = useState({});
@@ -351,7 +351,7 @@ useEffect(() => {
 
 ### State under the radar
 
-This is a dangerous thing to do, but you could hold state inside a React ref, and control when do you let the rendering process know about it.
+This is a dangerous thing to do, but you can hold state inside a React `ref`, and control when do you let the React know about the change.
 
 ```tsx
 const EvenButton = () => {
@@ -371,7 +371,7 @@ const EvenButton = () => {
 };
 ```
 
-Clicking the button updates an internal piece of state, but it only renders when the internal piece of state holds an even number.
+Clicking the button updates the `ref` state, but it only triggers a React renders when the `ref` state holds an even number.
 
 - Click once, the i is set to `1`, but the button still shows `0`
 - Click once again, the internal is set to `2`, the button updates to `2`
@@ -400,13 +400,13 @@ test("State hidden inside a ref", () => {
 
 By now you might see what's the trick.
 
-- Keep state in a React ref
+- Keep state in a React `ref`
 - Update it as one normally would
 - Let React know about changes, only if certain conditions are met
 
-We'll store the result from the property `getters` on yet another React ref, and use that to know whether or not to let React know about the changes. We'll let React know about the changes, by forcing a render.
+We'll store the result from the property `getters` on yet another React `ref`, and use that to know whether or not to let React know about the change. Remember, we let React know about the change, by forcing a render.
 
-Let's see at one possible implementation of `useStateWithDeps`:
+Let's see one possible implementation of `useStateWithDeps`:
 
 ```ts
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -531,9 +531,9 @@ This is an optimization technique. Rendering is not necessarily bad. Generally w
 
 The use cases for this technique are also contribed. It fits very well for data fetching libraries, where the results are cached, and multiple consumers need to be notified.
 
-Since these consumers might be looking at different parts of the data, it makes sense to help by not forcing rendering, if unused pieces of state change.
+Since these consumers might be looking at different parts of state, it makes sense to help by not forcing rendering, if unused parts of state change.
 
-We should understand that this unused pieces of state, are not used by the consumer, but are often used by library to delivery their value proposition.
+We should understand that these unused parts of the state, are not used by the consumer, but are could be used by library to delivery their value proposition.
 
 For example, if a component doesn't care about the `isValidating` flag, then we should not force it to render when this flag changes, but the library might still need to know interally if validation is happening.
 
